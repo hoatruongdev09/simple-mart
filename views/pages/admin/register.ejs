@@ -1,0 +1,177 @@
+<script>
+    $(document).ready(() => {
+        $("#formRegister").submit((e) => {
+            e.preventDefault();
+            const form = $('#formRegister')
+            const notification = $('#errorNotification')
+            const passwordValue = form.find("input[name='password']").val()
+            const confirmPasswordValue = form.find("input[name='confirmPassword']").val()
+
+            if (passwordValue != confirmPasswordValue) {
+                return
+            }
+
+            var url = e.currentTarget.action;
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: $("#formRegister").serialize(),
+                success: (data, text) => {
+                    window.location.href = '/user/login'
+                },
+                error: (xhr, status, error) => {
+                    console.error(xhr.statusText)
+                    notification.show()
+                    notification.html(xhr.statusText)
+                }
+            });
+        });
+    })
+    function onUsernameChange() {
+        const usernameInput = $('#formRegister').find("input[name='username']")
+        const value = usernameInput.val()
+        $.ajax({
+            url: `/user/checkValidUserName/${value}`,
+            type: 'get',
+            success: (data, text) => {
+                if (data) {
+                    usernameInput.addClass('is-valid')
+                    usernameInput.removeClass('is-invalid')
+                } else {
+                    usernameInput.addClass('is-invalid')
+                    usernameInput, removeClass('is-valid')
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error(error)
+            }
+        });
+    }
+    function onPhoneChange() {
+        const phoneInput = $('#formRegister').find("input[name='phone']")
+        const value = phoneInput.val()
+        $.ajax({
+            url: `/user/checkValidPhone/${value}`,
+            type: 'get',
+            success: (data) => {
+                if (data, text) {
+                    phoneInput.addClass('is-valid')
+                    phoneInput.removeClass('is-invalid')
+                } else {
+                    phoneInput.addClass('is-invalid')
+                    phoneInput.removeClass('is-valid')
+                }
+            },
+            error: (xhr, status, error) => {
+                console.log(error)
+            }
+        })
+    }
+    function onConfirmPasswordChange() {
+        const inputConfirmPassword = $('#formRegister').find("input[name='confirmPassword']")
+        const confirmPasswordValue = inputConfirmPassword.val()
+        const passwordValue = $('#formRegister').find("input[name='password']").val()
+        if (confirmPasswordValue != passwordValue) {
+            inputConfirmPassword.addClass('is-invalid')
+            inputConfirmPassword.removeClass('is-valid')
+        } else {
+            inputConfirmPassword.removeClass('is-invalid')
+            inputConfirmPassword.addClass('is-valid')
+        }
+    }
+    function checkValidPassword() {
+        const inputPassword = $('#formRegister').find("input[name='password']")
+        const passwordValue = inputPassword.val()
+        const strongPasswordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})")
+        if (!strongPasswordRegex.test(passwordValue)) {
+            inputPassword.addClass('is-invalid')
+            inputPassword.removeClass('is-valid')
+        } else {
+            inputPassword.removeClass('is-invalid')
+            inputPassword.addClass('is-valid')
+        }
+    }
+</script>
+<div class="auth-box row text-center">
+    <div class="col-lg-7 col-md-5 modal-bg-img" style="background-image: url(../assets/images/big/3.jpg)"></div>
+    <div class="col-lg-5 col-md-7 bg-white">
+        <div class="p-3">
+            <h2 class="mt-3 text-center">Register</h2>
+            <div class="alert alert-danger" role="alert" id="errorNotification" style="display: none;">
+
+            </div>
+            <form class="mt-4" method="POST" action="/user/register" id="formRegister">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <input class="form-control" name="firstname" type="text" placeholder="first name" />
+                            <div class="invalid-feedback">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <input class="form-control" name="lastname" type="text" placeholder="last name" />
+                            <div class="invalid-feedback">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <input class="form-control" onkeyup="onUsernameChange()" name="username" type="text"
+                                placeholder="username" required />
+                            <div class="invalid-feedback">
+                                Username is not available. Try another?
+                            </div>
+                            <div class="valid-feedback">
+                                Username is available.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <input class="form-control" onkeyup="onPhoneChange()" type="tel" id="phone" name="phone"
+                                placeholder="phone" pattern="[0-9]{11}" required />
+                            <div class="invalid-feedback">
+                                Phone number is not available. Try another?
+                            </div>
+                            <div class="valid-feedback">
+                                Phone number is available.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <input class="form-control" onkeyup="checkValidPassword()" name="password" type="password"
+                                placeholder="password" required />
+                            <div class="invalid-feedback">
+                                Password must be 8 or more character and include at least 1 UPPERCASE, 1 number
+                                character.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <input class="form-control" name="confirmPassword" type="password"
+                                placeholder="confirm password" onkeyup="onConfirmPasswordChange()" required />
+                            <div class="invalid-feedback">
+                                Confirm password and password are not the same
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 text-center">
+                        <button type="submit" class="btn btn-block btn-dark">
+                            Sign Up
+                        </button>
+                    </div>
+                    <div class="col-lg-12 text-center mt-5">
+                        Already have an account?
+                        <a href="/user/login" class="text-danger">Sign In</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

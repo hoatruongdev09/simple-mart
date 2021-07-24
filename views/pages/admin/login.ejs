@@ -1,0 +1,70 @@
+<script>
+  $(document).ready(() => {
+    $('#formSignIn').submit(e => {
+      e.preventDefault()
+      const form = $('#formSignIn')
+      const notification = $('#errorNotification')
+      const passwordValue = form.find("input[name='password']").val()
+      const usernameValue = form.find("input[name='username']").val()
+
+      if (!passwordValue || !usernameValue) {
+        notification.show()
+        notification.html('Please enter username and password!')
+        return
+      }
+      var url = e.currentTarget.action
+      console.log(url)
+      $.ajax({
+        url: url,
+        type: 'post',
+        data: form.serialize(),
+        success: (data, text) => {
+          console.log(text)
+        },
+        error: (xhr, status, error) => {
+          notification.show()
+          notification.html(xhr.responseText)
+        }
+      })
+    })
+  })
+
+</script>
+
+<div class="auth-box row">
+  <div class="col-lg-7 col-md-5 modal-bg-img" style="background-image: url(../assets/images/big/3.jpg)"></div>
+  <div class="col-lg-5 col-md-7 bg-white">
+    <div class="p-3">
+      <h2 class="mt-3 text-center">Sign In</h2>
+      <div class="alert alert-danger" role="alert" id="errorNotification" style="display: none;">
+
+      </div>
+      <form class="mt-4" method="POST" id="formSignIn" action="/user/login">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="form-group">
+              <label class="text-dark" for="uname">Username</label>
+              <input class="form-control" name="username" id="username" type="text" placeholder="enter your username" />
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="form-group">
+              <label class="text-dark" for="pwd">Password</label>
+              <input class="form-control" name="password" id="password" type="password"
+                placeholder="enter your password" />
+            </div>
+          </div>
+          <div class="col-lg-12 text-center">
+            <button type="submit" class="btn btn-block btn-dark">
+              Sign In
+            </button>
+          </div>
+          <div class="col-lg-12 text-center mt-5">
+            Don't have an account?
+            <a href="/user/register" class="text-danger">Sign Up</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
