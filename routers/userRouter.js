@@ -48,7 +48,6 @@ Router.post('/register', userMiddlewares.validateRegisterData, async (req, res) 
     }
 })
 Router.post('/login', userMiddlewares.validateLoginData, async (req, res) => {
-    console.log("wtff")
     try {
         const { password } = req.body
         const user = req.user
@@ -56,8 +55,7 @@ Router.post('/login', userMiddlewares.validateLoginData, async (req, res) => {
             res.status(401).send("Username or password incorrect")
         }
         req.session.user = user
-        res.status(200).send('OK')
-        console.log('user: ', req.session.user)
+        res.status(200).send('ok')
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: error.message })

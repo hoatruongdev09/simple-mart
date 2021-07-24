@@ -6,17 +6,15 @@ const cors = require('cors')
 const path = require('path')
 const app = express()
 
-app.set('trust proxy', 1)
-
 app.use(session({
     secret: 'appsecret',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true },
-    genid: function (req) {
-        return uuidv4() // use UUIDs for session IDs
-    },
+    cookie: { secure: false },
+    store: new session.MemoryStore()
 }))
+
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
@@ -24,8 +22,11 @@ app.use(cors())
 app.use(express.static('public'))
 app.use(expressLayouts)
 
+
+
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'));
+
 
 app.use('/user', require('./routers/userRouter'))
 
