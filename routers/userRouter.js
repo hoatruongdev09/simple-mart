@@ -2,13 +2,40 @@ const Router = require('express').Router()
 const userMiddlewares = require('../middlewares/userMiddlewares')
 const userRepository = require('../repositories/userRepository')
 
+const uploadImageMiddleware = require('../middlewares/uploadImageMiddleware')
+const Resize = require('../utils/resizeImage')
 
-Router.get('/login', async (req, res) => {
-    console.log(req.session.user)
+Router.get('/main', async (req, res) => {
     if (req.session.user) {
-        console.log("hey hey you here")
+        const { username } = req.session.user
+        const user = await userRepository.findUserByUsername(username)
+        if (user.rows.length == 0) {
+            return res.redirect('login')
+        }
+        if (user.rows[0].is_admin) {
+            res.redirect('/admin/dashboard')
+        } else {
+
+        }
+    } else {
+        res.redirect('login')
+    }
+
+})
+Router.get('/login', async (req, res) => {
+    if (req.session.user) {
+        return res.redirect('main')
     }
     res.render('pages/admin/login', { title: 'Login', layout: 'layouts/authLayout.ejs' })
+})
+Router.get('/logout', async (req, res) => {
+    req.session.destroy((error) => {
+        if (error) {
+            console.log(error)
+        } else {
+            res.redirect('login')
+        }
+    })
 })
 Router.get('/register', async (req, res) => {
     res.render('pages/admin/register', { title: 'Register', layout: 'layouts/authLayout.ejs' })
@@ -52,9 +79,11 @@ Router.post('/login', userMiddlewares.validateLoginData, async (req, res) => {
         const { password } = req.body
         const user = req.user
         if (password != user.password) {
-            res.status(401).send("Username or password incorrect")
+            return res.status(401).send("Username or password incorrect")
         }
-        req.session.user = user
+        req.session.user = {
+            username: user.username
+        }
         res.status(200).send('ok')
     } catch (error) {
         console.log(error)

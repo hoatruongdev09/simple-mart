@@ -41,10 +41,20 @@ async function checkValidPhone(phone) {
         throw error
     }
 }
+async function checkIfUserIsAdmin(id) {
+    try {
+        const result = await db.query("SELECT is_admin FROM users WHERE username = $1", [username])
+        return result
+    } catch (error) {
+        throw error
+    }
+}
+
 module.exports = {
     createUser,
     findUserByEmail,
     checkValidUserName,
     checkValidPhone,
-    findUserByUsername
+    findUserByUsername,
+    checkIfUserIsAdmin
 }

@@ -19,7 +19,7 @@
         type: 'post',
         data: form.serialize(),
         success: (data, text) => {
-          console.log(text)
+          window.location.href = '/user/main'
         },
         error: (xhr, status, error) => {
           notification.show()

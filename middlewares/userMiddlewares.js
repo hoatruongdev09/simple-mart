@@ -14,7 +14,7 @@ async function validateRegisterData(req, res, next) {
     }
     const checkUsernameResult = await userRepository.checkValidUserName(username)
     if (checkUsernameResult.rows[0].count != 0) {
-        res.status(400).send('Username is not available')
+        return res.status(400).send('Username is not available')
     }
     if (!validatePassword(password)) {
         return res.status(400).send('Password must be 8 or more character and include at least 1 UPPERCASE, 1 number character.')
@@ -28,8 +28,6 @@ async function validateRegisterData(req, res, next) {
 async function validateLoginData(req, res, next) {
     try {
         const { username, password } = req.body
-        console.log(username)
-        console.log(password)
         if (!username || !password) {
             return res.status(400).send('Username or password not valid')
         }
@@ -37,6 +35,7 @@ async function validateLoginData(req, res, next) {
         if (findUserResult.rows.length == 0) {
             return res.status(401).send("Username or password incorrect")
         }
+
         req.user = findUserResult.rows[0]
         next()
     } catch (error) {
@@ -44,6 +43,8 @@ async function validateLoginData(req, res, next) {
         res.status(500).send(error.message)
     }
 }
+
+
 
 module.exports = {
     validateRegisterData,
