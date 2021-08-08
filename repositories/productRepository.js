@@ -60,6 +60,14 @@ async function getProductDetailImages(productId) {
         throw e
     }
 }
+async function getProductImageDetail(imageId) {
+    try {
+        const result = await db.query("SELECT * FROM product_images WHERE id=$1", [imageId])
+        return result
+    } catch (error) {
+        throw e
+    }
+}
 async function deleteProductDetailImage(imageId) {
     try {
         const result = await db.query("DELETE FROM product_images WHERE id=$1", [imageId])
@@ -94,6 +102,7 @@ async function getProductByCode(code) {
         throw e
     }
 }
+
 module.exports = {
     getListProduct,
     getProductCount,
@@ -104,5 +113,6 @@ module.exports = {
     getNumberProductCode,
     getProductDetailImages,
     getProductByCode,
-    deleteProductDetailImage
+    deleteProductDetailImage,
+    getProductImageDetail
 }

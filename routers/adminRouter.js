@@ -5,6 +5,7 @@ const adminMiddleware = require('../middlewares/adminMiddlewares')
 
 const uploadImageMiddleware = require('../middlewares/uploadImageMiddleware')
 const Resize = require('../utils/resizeImage')
+const deleteFile = require('../utils/deleteFile')
 
 Router.get('/', (req, res) => {
     res.redirect('/admin/dashboard')
@@ -73,6 +74,25 @@ Router.post('/product/add', adminMiddleware.validateCreateProduct, async (req, r
         res.status(500).json({ message: e.message })
     }
 })
+Router.post('/product/ajaxUpdateNewImage/:id', uploadImageMiddleware.single('image'), async (req, res) => {
+    const id = req.params.id
+    const imagePath = 'public/images'
+    const fileUpload = new Resize(imagePath)
+    try {
+        const productInfo = await productRepository.getProductInfo(id)
+        if (productInfo.rows.length == 0) {
+            return res.status(404).json({ message: 'Product not found' })
+        }
+        deleteFile(`${imagePath}/${productInfo.rows[0].image}`)
+
+        const image = req.file
+        const filename = await fileUpload.save(image.buffer)
+        const result = await productRepository.updateProductImage(filename, id)
+        res.status(200).json({ image: filename })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
 Router.post('/product/ajaxUploadNewImage/:id', uploadImageMiddleware.single('image'), async (req, res) => {
     const id = req.params.id
     const imagePath = 'public/images'
@@ -90,12 +110,19 @@ Router.post('/product/ajaxUploadNewImage/:id', uploadImageMiddleware.single('ima
 Router.post('/product/ajaxDeleteDetailImage/', async (req, res) => {
     try {
         const id = req.body.id
+        const imageInfo = await productRepository.getProductImageDetail(id)
+        if (imageInfo.rows.length == 0) {
+            return res.status(200).json({ message: 'Image is not found' })
+        }
+        deleteFile(`public/images/${imageInfo.rows[0].image}`)
         const result = await productRepository.deleteProductDetailImage(id)
         res.status(200).json({ message: 'ok' })
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: error.message })
     }
 })
+
 Router.post('/product/updateImage/:id', uploadImageMiddleware.fields([{
     name: 'productImage',
     maxCount: 1
