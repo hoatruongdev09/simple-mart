@@ -1,0 +1,284 @@
+<script>
+    $(document).ready(() => {
+        $("#form-upload-new-image").submit(e => {
+            e.preventDefault()
+            const form = $("#form-upload-new-image")
+            const image = $("#upload-new-image-input").prop('files')[0]
+            const formData = new FormData()
+            formData.append('image', image)
+            const inputId = $("#input-product-id").val()
+            $('#modal-upload-new-image').modal('toggle')
+            $.ajax({
+                url: `/admin/product/ajaxUploadNewImage/${inputId}`,
+                method: 'post',
+                data: formData,
+                contentType: false,
+                processData: false,
+                enctype: 'multipart/form-data',
+                success: (data, text) => {
+                    console.log(data.image)
+                    const productImageTable = $("#table-product-images")
+                    $("#upload-new-image-input").val(null)
+                    productImageTable.append(`
+                            <tr id="row-img-${data.id}">
+                            <td><img style="width: 100px; height: 100px; object-fit: cover;"
+                                    src="/images/${data.image}" /></td>
+                            <td class="align-middle">
+                                ${data.image}
+                            </td>
+                            <td class="align-middle text-right"><button onclick="openDeleteImageConfirm(${data.id})" class="btn btn-danger">Delete</button></td>
+                        </tr>
+                        `)
+                },
+                error: (xhr, status, error) => {
+                }
+            })
+        })
+    });
+    let isLocked = true;
+    let lastSelectDeleteImageId = -1
+    function getRandomProductCode() {
+        if (isLocked) { return; }
+        $.ajax({
+            url: '/admin/product/ajaxGetCode',
+            method: 'get',
+            success: (data, text) => {
+                $('#input-product-code').val(data.code)
+            },
+            error: (xhr, status, error) => {
+                console.error(xhr.statusText)
+            }
+        })
+    }
+
+    function submitUploadImage(e) {
+        $("#form-upload-new-image").submit()
+    }
+    function deleteDetailImage() {
+        if (lastSelectDeleteImageId == -1) { return }
+        const id = lastSelectDeleteImageId
+        $.ajax({
+            url: '/admin/product/ajaxDeleteDetailImage',
+            method: 'post',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({ id: id }),
+            success: (data, text) => {
+                lastSelectDeleteImageId = -1
+                const element = $(`#row-img-${id}`)
+                element.addClass("bg-light")
+                element.fadeTo(1000, 0, () => {
+                    element.remove()
+                })
+            },
+            error: (xhr, status, error) => {
+                lastSelectDeleteImageId = -1
+            }
+        })
+    }
+    function openDeleteImageConfirm(id) {
+        console.log("hey hey: ", id)
+        lastSelectDeleteImageId = id
+        $("#delete-image-confirm-modal").modal("toggle")
+
+    }
+    function test(id) {
+        console.log("hey hey hey: ", id)
+    }
+</script>
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-7 align-self-center">
+            <h4 class="page-title text-truncate text-dark font-weight-medium mb-1">
+                Product Detail
+            </h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0 p-0">
+                        <li class="breadcrumb-item">
+                            <a href="/admin/dashboard" class="text-muted">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item text-muted active" aria-current="page">
+                            Product Detail
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row justify-content-end">
+        <button class="btn btn-warning mr-2">Cancel</button>
+        <button class="btn btn-info">Save</button>
+        <button hidden class="btn btn-success">Edit</button>
+    </div>
+    <div class="row">
+        <form class="w-100" id="form-create-product" method="post" action="/admin/product/add">
+            <div class="form-row">
+                <div class="col-md-8">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="product_code">Product Code</label>
+                            <div class="input-group">
+                                <input disabled type="text" id="input-product-code" name="productCode" minlength="10"
+                                    maxlength="10" class="form-control text-uppercase" id="product_code"
+                                    placeholder="ABCDE12345" value="<%=productInfo.product_code%>" />
+                                <div class="input-group-append">
+                                    <a role="button btn-disable" class="btn btn-outline-primary"
+                                        onclick="getRandomProductCode()">Generate</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="product_name">Product Name</label>
+                            <input disabled type="text" name="productName" class="form-control" id="product_name"
+                                placeholder="Martbook 2021" , value="<%=productInfo.name%>" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="product_price">Price (USD)</label>
+                            <input disabled type="number" name="productPrice" class="form-control" id="product_price"
+                                placeholder="10" value="<%= productInfo.price * (1-productInfo.discount/100)%>" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="product_discount">Discount (%)</label>
+                            <input disabled type="number" name="productDiscount" class="form-control"
+                                id="product_discount" placeholder="10" value="<%= productInfo.discount%>" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="product_count">Product Count</label>
+                            <input disabled type="number" name="productCount" class="form-control" id="product_count"
+                                placeholder="100" , value="<%= productInfo.count%>" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="product_category">Category</label>
+                        <select disabled multiple class="form-control" name="productCategory" id="product_category"
+                            style="height: 125px">
+                            <% category.forEach(cat=>{ %>
+                                <option value="<%=cat.id %>" <%=productCategories.includes(cat.id) ? 'selected' :''%>>
+                                    <%=cat.name %>
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="product_description">Description</label>
+                <textarea disabled class="form-control" name="productDescription" id="product_description" rows="3"
+                    placeholder="Your description">
+<%=productInfo.description%></textarea>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">Image</th>
+                        <th scope="col">Image Name</th>
+                        <th scope="col" class="text-right">
+                            <button type="button" class="btn btn-primary" data-toggle="modal"
+                                data-target="#modal-upload-new-image">Add
+                                Image</button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="table-product-images">
+                    <tr>
+                        <td><img style="width: 100px; height: 100px; object-fit: cover;"
+                                src="/images/<%=productInfo.image%>" /></td>
+                        <td class="align-middle">
+                            <%=productInfo.image%>
+                        </td>
+                        <td class="align-middle text-right"><button class="btn btn-warning">Change</button></td>
+                    </tr>
+                    <%productImages.forEach(img=>{%>
+                        <tr id="row-img-<%=img.id%>">
+                            <td><img style="width: 100px; height: 100px; object-fit: cover;"
+                                    src="/images/<%=img.image%>" /></td>
+                            <td class="align-middle">
+                                <%=img.image%>
+                            </td>
+                            <td class="align-middle text-right"><button onclick=<%=`openDeleteImageConfirm(${img.id})`%>
+                                    class="btn btn-danger">Delete</button></td>
+                        </tr>
+                        <%})%>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="delete-image-confirm-modal" class="modal fade" tabindex="-2" role="dialog"
+    aria-labelledby="danger-header-modalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title" id="danger-header-modalLabel">Delete Image</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to delete this image ?</p>
+                <input id="id-image-for-delete" type="hidden">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">No</button>
+                <button type="button" onclick="deleteDetailImage()" data-dismiss="modal"
+                    class="btn btn-danger">Yes</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<div id="modal-upload-new-image" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Upload New Image</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body card pb-0 mb-0">
+                <form class="mt-3" method="post" id="form-upload-new-image" action="/admin/product/uploadNewImage">
+                    <div class="form-group">
+                        <input type="hidden" id="input-product-id" name="productId" value="<%=productInfo.id%>">
+                        <input type="file" name="image" class="form-control-file" id="upload-new-image-input">
+                    </div>
+                    <div class="form-group text-right">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitUploadImage()">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+<div id="modal-change-image" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Update Image</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body card pb-0 mb-0">
+                <form class="mt-3" method="post" id="form-upload-new-image" action="/admin/product/uploadNewImage">
+                    <div class="form-group">
+                        <input type="hidden" id="input-product-id" name="productId" value="<%=productInfo.id%>">
+                        <input type="file" name="image" class="form-control-file" id="upload-new-image-input">
+                    </div>
+                    <div class="form-group text-right">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitUploadImage()">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>

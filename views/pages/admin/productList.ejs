@@ -65,7 +65,7 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                         <td>${data.price - data.price * data.discount / 100} ${data.discount > 0 ? `-(${data.discount}%)` : ``}</td>
                         <td>${data.count}</td>
                         <td class="text-right">
-                            <button class="btn btn-warning">View Detail</button>
+                            <a href="/admin/product/detail/${data.product_code}" class="btn btn-warning">View Detail</a>
                         </td>
                     </tr>
                 `)
@@ -121,10 +121,10 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb m-0 p-0">
                         <li class="breadcrumb-item">
-                            <a href="index.html" class="text-muted">Home</a>
+                            <a href="/admin/dashboard" class="text-muted">Dashboard</a>
                         </li>
                         <li class="breadcrumb-item text-muted active" aria-current="page">
-                            Library
+                            Product List
                         </li>
                     </ol>
                 </nav>
@@ -196,7 +196,7 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                                     <td><%= (product.price - product.price * (product.discount / 100)) %> <%= (product.discount > 0 ? ` (-${product.discount}%)` : '') %></td>
                                     <td><%= product.count %></td>
                                     <td class="text-right">
-                                        <button class="btn btn-warning">View Detail</button>
+                                        <a href="/admin/product/detail/<%= product.product_code %>" class="btn btn-warning">View Detail</a>
                                     </td>
                                 </tr>
                             <% }) %>

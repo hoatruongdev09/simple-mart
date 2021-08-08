@@ -19,19 +19,19 @@ async function getProductCount() {
 }
 
 async function createProduct({
-                                 productCode,
-                                 productName,
-                                 productPrice,
-                                 productDiscount,
-                                 productCount,
-                                 productDescription,
-                             },dateCreated) {
+    productCode,
+    productName,
+    productPrice,
+    productDiscount,
+    productCount,
+    productDescription,
+}, dateCreated) {
     try {
         const result = await db.query("INSERT INTO public.products(name, price, description, count, discount, product_code, date_created) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING id;",
             [productName, productPrice, productDescription, productCount, productDiscount, productCode, dateCreated])
         return result
     } catch (e) {
-        throw  e;
+        throw e;
     }
 }
 
@@ -46,28 +46,51 @@ async function updateProductImage(imageName, productId) {
 
 async function addProductDetailImage(imageName, productId) {
     try {
-        const result = await db.query("INSERT INTO public.product_images(product_id, image) VALUES ($1, $2);",[productId,imageName])
+        const result = await db.query("INSERT INTO public.product_images(product_id, image) VALUES ($1, $2) RETURNING *;", [productId, imageName])
+        return result
+    } catch (e) {
+        throw e
+    }
+}
+async function getProductDetailImages(productId) {
+    try {
+        const result = await db.query("SELECT * FROM product_images WHERE product_id=$1", [productId])
+        return result
+    } catch (e) {
+        throw e
+    }
+}
+async function deleteProductDetailImage(imageId) {
+    try {
+        const result = await db.query("DELETE FROM product_images WHERE id=$1", [imageId])
+        return result
+    } catch (error) {
+        throw e
+    }
+}
+async function getProductInfo(productId) {
+    try {
+        const result = await db.query("SELECT * FROM products WHERE id=$1", [productId])
         return result
     } catch (e) {
         throw e
     }
 }
 
-async function getProductInfo(productId) {
-    try{
-        const result = await db.query("SELECT * FROM products WHERE id=$1",[productId])
+async function getNumberProductCode(code) {
+    try {
+        console.log(code)
+        const result = await db.query("SELECT COUNT(product_code) FROM products WHERE product_code=$1", [code])
         return result
-    }catch (e) {
+    } catch (e) {
         throw e
     }
 }
-
-async function getNumberProductCode(code) {
-    try{
-        console.log(code)
-        const result = await db.query("SELECT COUNT(product_code) FROM products WHERE product_code=$1",[code])
+async function getProductByCode(code) {
+    try {
+        const result = await db.query("SELECT * FROM products WHERE product_code=$1", [code])
         return result
-    }catch (e) {
+    } catch (e) {
         throw e
     }
 }
@@ -78,5 +101,8 @@ module.exports = {
     updateProductImage,
     addProductDetailImage,
     getProductInfo,
-    getNumberProductCode
+    getNumberProductCode,
+    getProductDetailImages,
+    getProductByCode,
+    deleteProductDetailImage
 }
