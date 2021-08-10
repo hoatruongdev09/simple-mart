@@ -1,6 +1,33 @@
 <%
 let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 1 : 0)
+function getStatusById(id) {
+    for(let i =0;i<status.length;i++) {
+        if(status[i].id == id) {
+            return status[i]
+        }
+    }
+    return null
+}
+function getStatusBadgeType(id) {
+    switch (id) {
+        case "1": return "badge-success"
+        case "2": return "badge-secondary"
+        case "3": return "badge-danger"
+        default: return ""
+    }
+}
 %>
+<script>
+    const status = <%-JSON.stringify(status)%>
+    function getStatusById (id) {
+        for(let i =0;i<status.length;i++) {
+            if(status[i].id == id) {
+                return status[i]
+            }
+        }
+        return null
+    }
+</script>
 <script>
     $(document).ready(() => {
         $('#form-create-product').submit(e => {
@@ -12,7 +39,6 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                 data: form.serialize(),
                 success: (data, text) => {
                     const id = data.id
-                    console.log(id)
                     uploadFormUpdateData(id)
                 },
                 error: (xhr, status, error) => {
@@ -38,7 +64,6 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                 processData: false,
                 enctype: 'multipart/form-data',
                 success: (data, text) => {
-                    console.log(data.id)
                     addNewProductRecord(data.id)
                 },
                 error: (xhr, status, error) => {
@@ -49,6 +74,14 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
     })
     let searchValue = "";
 
+    function getStatusBadgeType(id) {
+    switch (id) {
+        case "1": return "badge-success"
+        case "2": return "badge-secondary"
+        case "3": return "badge-danger"
+        default: return ""
+    }
+}
     function addNewProductRecord(id) {
         $.ajax({
             url: `/admin/product/ajaxInfo/${id}`,
@@ -62,7 +95,8 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                             <img class="item-image" src="/images/${data.image}">
                         </td>
                         <td>${data.name}</td>
-                        <td>${data.price - data.price * data.discount / 100} ${data.discount > 0 ? `-(${data.discount}%)` : ``}</td>
+                        <td><span class="badge ${getStatusBadgeType(data.status)}">${getStatusById(data.status).status}</span></td>
+                        <td>${data.price} <span class="${data.discount>0?'badge badge-dark':''}">${data.discount>0?`-${data.discount}%`:''}</span></td>
                         <td>${data.count}</td>
                         <td class="text-right">
                             <a href="/admin/product/detail/${data.product_code}" class="btn btn-warning">View Detail</a>
@@ -176,14 +210,15 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                     <% }else{ %>
                         <table class="table">
                             <thead class="thead-light">
-                            <tr>
-                                <th>Code</th>
-                                <th>Image</th>
-                                <th>Product Name</th>
-                                <th>Price</th>
-                                <th>Count</th>
-                                <th></th>
-                            </tr>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Status</th>
+                                    <th>Price</th>
+                                    <th>Count</th>
+                                    <th></th>
+                                </tr>
                             </thead>
                             <tbody id="table-product-record">
                             <% products.forEach((product, index)=>{ %>
@@ -193,7 +228,8 @@ let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 
                                         <img class="item-image" src="/images/<%= product.image %>">
                                     </td>
                                     <td><%= product.name %></td>
-                                    <td><%= (product.price - product.price * (product.discount / 100)) %> <%= (product.discount > 0 ? ` (-${product.discount}%)` : '') %></td>
+                                    <td><span class="badge <%=getStatusBadgeType(product.status)%>"><%= getStatusById(product.status).status%></span></td>
+                                    <td><%= product.price %> <span class="<%= product.discount>0?'badge badge-dark':''%>"><%=product.discount>0?`-${product.discount}%`:''%></span></td>
                                     <td><%= product.count %></td>
                                     <td class="text-right">
                                         <a href="/admin/product/detail/<%= product.product_code %>" class="btn btn-warning">View Detail</a>

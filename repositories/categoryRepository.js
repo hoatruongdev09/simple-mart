@@ -25,9 +25,18 @@ async function getProductCategories(productId) {
         throw e
     }
 }
+async function deleteAllProductCategory(productId) {
+    try {
+        const result = await db.query("DELETE FROM product_category WHERE product_id=$1", [productId])
+        return result
+    } catch (error) {
+        throw error
+    }
+}
 
 module.exports = {
     getAllCategory,
     insertProductCategory,
-    getProductCategories
+    getProductCategories,
+    deleteAllProductCategory
 }

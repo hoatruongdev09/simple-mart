@@ -14,10 +14,18 @@ async function getProductCount() {
         const result = await db.query("SELECT COUNT(id) FROM products")
         return result
     } catch (error) {
-        throw console.error();
+        throw error
     }
 }
-
+async function updateProduct(id, { productCode, productName, productPrice, productDiscount, productCount, productDescription, productStatus }) {
+    try {
+        const result = await db.query("UPDATE products SET name=$1,price=$2,description=$3,count=$4,discount=$5,product_code=$6,status=$7 WHERE id=$8",
+            [productName, productPrice, productDescription, productCount, productDiscount, productCode, productStatus, id])
+        return result
+    } catch (error) {
+        throw error
+    }
+}
 async function createProduct({
     productCode,
     productName,
@@ -25,10 +33,10 @@ async function createProduct({
     productDiscount,
     productCount,
     productDescription,
-}, dateCreated) {
+}, dateCreated, status = 1) {
     try {
-        const result = await db.query("INSERT INTO public.products(name, price, description, count, discount, product_code, date_created) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING id;",
-            [productName, productPrice, productDescription, productCount, productDiscount, productCode, dateCreated])
+        const result = await db.query("INSERT INTO public.products(name, price, description, count, discount, product_code, date_created, status) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+            [productName, productPrice, productDescription, productCount, productDiscount, productCode, dateCreated, status])
         return result
     } catch (e) {
         throw e;
@@ -102,11 +110,19 @@ async function getProductByCode(code) {
         throw e
     }
 }
-
+async function getAllProductStatus() {
+    try {
+        const result = await db.query("SELECT * FROM product_status")
+        return result
+    } catch (error) {
+        throw error
+    }
+}
 module.exports = {
     getListProduct,
     getProductCount,
     createProduct,
+    updateProduct,
     updateProductImage,
     addProductDetailImage,
     getProductInfo,
@@ -114,5 +130,6 @@ module.exports = {
     getProductDetailImages,
     getProductByCode,
     deleteProductDetailImage,
-    getProductImageDetail
+    getProductImageDetail,
+    getAllProductStatus
 }

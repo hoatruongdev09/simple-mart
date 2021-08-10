@@ -1,5 +1,11 @@
 <script>
+    let productData = <%-JSON.stringify(productInfo)%>
+    let productCategories = <%-JSON.stringify(productCategories)%>
+</script>
+<script>
     $(document).ready(() => {
+        console.log("heyhey: ",productData)
+        console.log("heyheyhey: ", productCategories)
         $("#form-upload-new-image").submit(e => {
             e.preventDefault()
             const form = $("#form-upload-new-image")
@@ -29,8 +35,7 @@
                             </tr>
                         `)
                 },
-                error: (xhr, status, error) => {
-                }
+                error: (xhr, status, error) => {}
             })
         })
         $("#form-update-new-image").submit(e => {
@@ -58,11 +63,32 @@
                 }
             })
         })
+        $("#form-update-product-info").submit(e=>{
+            e.preventDefault()
+            const form = $("#form-update-product-info")
+            $.ajax({
+                url: `/admin/product/ajaxUpdateInfo/${productData.id}`,
+                method: 'post',
+                data: form.serialize(),
+                success: (data,text) =>{
+                    console.log(data.productCategories)
+                    productData = data.productData
+                    productCategories = data.productCategories.map(cat=>cat.category_id)
+                    onCancelEdit()
+                },
+                error: (xhr,statusText,error) =>{
+                    console.log(xhr.statusText)
+                }
+            })
+        })
     });
     let isLocked = true;
     let lastSelectDeleteImageId = -1
+
     function getRandomProductCode() {
-        if (isLocked) { return; }
+        if (isLocked) {
+            return;
+        }
         $.ajax({
             url: '/admin/product/ajaxGetCode',
             method: 'get',
@@ -74,21 +100,28 @@
             }
         })
     }
+
     function submitUpdateImage() {
         $("#form-update-new-image").submit();
     }
+
     function submitUploadImage() {
         $("#form-upload-new-image").submit()
     }
+
     function deleteDetailImage() {
-        if (lastSelectDeleteImageId == -1) { return }
+        if (lastSelectDeleteImageId == -1) {
+            return
+        }
         const id = lastSelectDeleteImageId
         $.ajax({
             url: '/admin/product/ajaxDeleteDetailImage',
             method: 'post',
             contentType: 'application/json',
             dataType: 'json',
-            data: JSON.stringify({ id: id }),
+            data: JSON.stringify({
+                id: id
+            }),
             success: (data, text) => {
                 lastSelectDeleteImageId = -1
                 const element = $(`#row-img-${id}`)
@@ -102,14 +135,50 @@
             }
         })
     }
+
     function openDeleteImageConfirm(id) {
         console.log("hey hey: ", id)
         lastSelectDeleteImageId = id
         $("#delete-image-confirm-modal").modal("toggle")
 
     }
-    function test(id) {
-        console.log("hey hey hey: ", id)
+
+    function onCancelEdit() {
+        $("#button-active-edit").attr("hidden", false)
+        $("#button-cancel-edit").attr("hidden", true)
+        $("#button-save-edit").attr("hidden", true)
+
+        $("#input-product-code").val(productData.product_code)
+        $("#product_name").val(productData.name)
+        $("#product_price").val(productData.price)
+        $("#product_discount").val(productData.discount)
+        $("#product_count").val(productData.count)
+        $("#product_category").val(productCategories)
+        $("#product_description").val(productData.description)
+        $("#input-product-status").val(productData.status)
+        lockAllInput(true)
+    }
+
+    function onActiveEdit() {
+        $("#button-active-edit").attr("hidden", true)
+        $("#button-cancel-edit").attr("hidden", false)
+        $("#button-save-edit").attr("hidden", false)
+        lockAllInput(false)
+    }
+    function onSaveProductInfo() {
+        $("#form-update-product-info").submit()
+    }
+
+    function lockAllInput(action) {
+        isLocked=action
+        $("#input-product-code").attr("disabled", action)
+        $("#product_name").attr("disabled", action)
+        $("#product_price").attr("disabled", action)
+        $("#product_discount").attr("disabled", action)
+        $("#product_count").attr("disabled", action)
+        $("#product_category").attr("disabled", action)
+        $("#product_description").attr("disabled", action)
+        $("#input-product-status").attr("disabled",action)
     }
 </script>
 <div class="page-breadcrumb">
@@ -124,6 +193,9 @@
                         <li class="breadcrumb-item">
                             <a href="/admin/dashboard" class="text-muted">Dashboard</a>
                         </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/product/list" class="text-muted">Product List</a>
+                        </li>
                         <li class="breadcrumb-item text-muted active" aria-current="page">
                             Product Detail
                         </li>
@@ -136,28 +208,36 @@
 
 <div class="container-fluid">
     <div class="row justify-content-end">
-        <button class="btn btn-warning mr-2">Cancel</button>
-        <button class="btn btn-info">Save</button>
-        <button hidden class="btn btn-success">Edit</button>
+        <button type="button" id="button-save-edit" hidden class="btn btn-info mr-2" onclick="onSaveProductInfo()">Save</button>
+        <button id="button-cancel-edit" hidden class="btn btn-warning" onclick="onCancelEdit()">Cancel</button>
+        <button id="button-active-edit" class="btn btn-success" onclick="onActiveEdit()">Edit</button>
     </div>
     <div class="row">
-        <form class="w-100" id="form-create-product" method="post" action="/admin/product/add">
+        <form class="w-100" id="form-update-product-info">
             <div class="form-row">
                 <div class="col-md-8">
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                             <label for="product_code">Product Code</label>
                             <div class="input-group">
                                 <input disabled type="text" id="input-product-code" name="productCode" minlength="10"
                                     maxlength="10" class="form-control text-uppercase" id="product_code"
                                     placeholder="ABCDE12345" value="<%=productInfo.product_code%>" />
                                 <div class="input-group-append">
-                                    <a role="button btn-disable" class="btn btn-outline-primary"
+                                    <a role="button" class="btn btn-primary text-white"
                                         onclick="getRandomProductCode()">Generate</a>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
+                            <label for="product_name">Status</label>
+                            <select disabled class="form-control" name="productStatus" id="input-product-status">
+                                <%allStatus.forEach(stt =>{%>
+                                    <option value="<%=stt.id%>" <%=(stt.id==productInfo.status?'selected':'')%>><%=stt.status%></option>
+                                <%})%>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
                             <label for="product_name">Product Name</label>
                             <input disabled type="text" name="productName" class="form-control" id="product_name"
                                 placeholder="Martbook 2021" , value="<%=productInfo.name%>" />
@@ -167,7 +247,7 @@
                         <div class="form-group col-md-4">
                             <label for="product_price">Price (USD)</label>
                             <input disabled type="number" name="productPrice" class="form-control" id="product_price"
-                                placeholder="10" value="<%= productInfo.price * (1-productInfo.discount/100)%>" />
+                                placeholder="10" value="<%= productInfo.price%>" />
                         </div>
                         <div class="form-group col-md-4">
                             <label for="product_discount">Discount (%)</label>
@@ -187,10 +267,10 @@
                         <select disabled multiple class="form-control" name="productCategory" id="product_category"
                             style="height: 125px">
                             <% category.forEach(cat=>{ %>
-                                <option value="<%=cat.id %>" <%=productCategories.includes(cat.id) ? 'selected' :''%>>
-                                    <%=cat.name %>
-                                </option>
-                                <% }) %>
+                            <option value="<%=cat.id %>" <%=productCategories.includes(cat.id) ? 'selected' :''%>>
+                                <%=cat.name %>
+                            </option>
+                            <% }) %>
                         </select>
                     </div>
                 </div>
@@ -229,17 +309,17 @@
                         </td>
                     </tr>
                     <%productImages.forEach(img=>{%>
-                        <tr id="row-img-<%=img.id%>">
-                            <td><img style="width: 100px; height: 100px; object-fit: cover;"
-                                    src="/images/<%=img.image%>" /></td>
-                            <td class="align-middle">
-                                <%=img.image%>
-                            </td>
-                            <td class="align-middle text-right"><button onclick=<%=`openDeleteImageConfirm(${img.id})`%>
-                                    class="btn btn-danger">Delete</button>
-                            </td>
-                        </tr>
-                        <%})%>
+                    <tr id="row-img-<%=img.id%>">
+                        <td><img style="width: 100px; height: 100px; object-fit: cover;" src="/images/<%=img.image%>" />
+                        </td>
+                        <td class="align-middle">
+                            <%=img.image%>
+                        </td>
+                        <td class="align-middle text-right"><button onclick=<%=`openDeleteImageConfirm(${img.id})`%>
+                                class="btn btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    <%})%>
                 </tbody>
             </table>
         </div>

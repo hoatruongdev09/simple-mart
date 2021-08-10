@@ -24,12 +24,14 @@ Router.get('/product/detail/:code', async (req, res) => {
         const productImages = await productRepository.getProductDetailImages(productID)
         const productCategories = await categoryRepository.getProductCategories(productID)
         const category = await categoryRepository.getAllCategory()
+        const status = await productRepository.getAllProductStatus()
         res.render('pages/admin/productDetail', {
             title: 'Product Detail',
             layout: 'layouts/adminLayout.ejs',
             category: category.rows,
             productInfo: productInfo.rows[0],
             productImages: productImages.rows,
+            allStatus: status.rows,
             productCategories: productCategories.rows.map(cat => cat.category_id)
         })
     } catch (e) {
@@ -45,13 +47,14 @@ Router.get('/product/list', async (req, res) => {
         const product = await productRepository.getListProduct(limit, offset)
         const category = await categoryRepository.getAllCategory()
         const productCount = await productRepository.getProductCount()
-
+        const status = await productRepository.getAllProductStatus()
         res.render('pages/admin/productList', {
             title: 'Product List',
             layout: 'layouts/adminLayout.ejs',
             category: category.rows,
             products: product.rows,
             productCount: productCount.rows[0].count,
+            status: status.rows,
             page: page,
             count: count
         })
@@ -68,10 +71,27 @@ Router.post('/product/add', adminMiddleware.validateCreateProduct, async (req, r
             await categoryRepository.insertProductCategory(id, req.body.productCategory[i])
         }
 
+
         res.status(200).json({ id: id })
     } catch (e) {
         console.log(e)
         res.status(500).json({ message: e.message })
+    }
+})
+Router.post('/product/ajaxUpdateInfo/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const updateResult = await productRepository.updateProduct(id, req.body)
+        await categoryRepository.deleteAllProductCategory(id)
+        for (let i = 0; i < req.body.productCategory.length; i++) {
+            await categoryRepository.insertProductCategory(id, req.body.productCategory[i])
+        }
+        const productInfo = await productRepository.getProductInfo(id)
+        const productCategory = await categoryRepository.getProductCategories(id)
+        res.status(200).json({ productData: productInfo.rows[0], productCategories: productCategory.rows })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: error.message })
     }
 })
 Router.post('/product/ajaxUpdateNewImage/:id', uploadImageMiddleware.single('image'), async (req, res) => {
