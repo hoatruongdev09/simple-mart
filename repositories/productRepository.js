@@ -1,17 +1,17 @@
 const db = require('../db')
 
-async function getListProduct(limit = 10, offset = 0) {
+async function getListProduct(limit = 10, offset = 0, searchValue = '') {
     try {
-        const result = await db.query("SELECT * FROM products ORDER BY date_created DESC LIMIT $1 OFFSET $2", [limit, offset])
+        const result = await db.query("(SELECT * FROM products WHERE product_code LIKE LOWER($3) UNION SELECT * FROM products WHERE LOWER(name) LIKE LOWER($4) UNION SELECT * FROM products WHERE $3='') ORDER BY date_created DESC LIMIT $1 OFFSET $2", [limit, offset, searchValue, `%${searchValue}%`])
         return result
     } catch (error) {
         throw error
     }
 }
 
-async function getProductCount() {
+async function getProductCount(searchValue = '') {
     try {
-        const result = await db.query("SELECT COUNT(id) FROM products")
+        const result = await db.query("SELECT COUNT(id) FROM (SELECT * FROM products WHERE product_code LIKE $1 UNION SELECT * FROM products WHERE name LIKE '%$1%' UNION SELECT * FROM products WHERE $1 LIKE '') as products_search", [searchValue])
         return result
     } catch (error) {
         throw error

@@ -1,5 +1,6 @@
 <%
 let pageCount = Math.floor(productCount / count) + (productCount % count != 0 ? 1 : 0)
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 function getStatusById(id) {
     for(let i =0;i<status.length;i++) {
         if(status[i].id == id) {
@@ -16,8 +17,15 @@ function getStatusBadgeType(id) {
         default: return ""
     }
 }
+function trimProductName(name) {
+    if(name.length <= 15) {return name}
+    const trimmedName = name.substring(10,name.length-1)
+    const replaceName = name.replace(trimmedName,"...")
+    return replaceName
+}
 %>
 <script>
+    let searchValue = <%-JSON.stringify(searchValue)%>
     const status = <%-JSON.stringify(status)%>
     function getStatusById (id) {
         for(let i =0;i<status.length;i++) {
@@ -26,6 +34,12 @@ function getStatusBadgeType(id) {
             }
         }
         return null
+    }
+    function trimProductName(name) {
+        if(name.length <= 15) {return name}
+        const trimmedName = name.substring(10,name.length-1)
+        const replaceName = name.replace(trimmedName,"...")
+        return replaceName
     }
 </script>
 <script>
@@ -71,8 +85,13 @@ function getStatusBadgeType(id) {
                 }
             })
         })
+        $('#form-search-product').submit(e =>{
+            e.preventDefault()
+            const searchValue = $("#searchTextInput").val();
+            window.location.href=`/admin/product/list?searchValue=${searchValue}`
+        })
     })
-    let searchValue = "";
+    
 
     function getStatusBadgeType(id) {
     switch (id) {
@@ -90,15 +109,15 @@ function getStatusBadgeType(id) {
                 const tableProduct = $('#table-product-record')
                 tableProduct.prepend(`
                      <tr>
-                        <td class="text-uppercase">${data.product_code}</td>
+                        <td class="text-uppercase align-middle">${data.product_code}</td>
                         <td>
                             <img class="item-image" src="/images/${data.image}">
                         </td>
-                        <td>${data.name}</td>
-                        <td><span class="badge ${getStatusBadgeType(data.status)}">${getStatusById(data.status).status}</span></td>
-                        <td>${data.price} <span class="${data.discount>0?'badge badge-dark':''}">${data.discount>0?`-${data.discount}%`:''}</span></td>
-                        <td>${data.count}</td>
-                        <td class="text-right">
+                        <td class="align-middle">${trimProductName(data.name)}</td>
+                        <td class="align-middle"><span class="badge ${getStatusBadgeType(data.status)}">${getStatusById(data.status).status}</span></td>
+                        <td class="align-middle">${data.price} <span class="${data.discount>0?'badge badge-dark':''}">${data.discount>0?`-${data.discount}%`:''}</span></td>
+                        <td class="align-middle">${data.count}</td>
+                        <td class="text-right align-middle">
                             <a href="/admin/product/detail/${data.product_code}" class="btn btn-warning">View Detail</a>
                         </td>
                     </tr>
@@ -119,6 +138,7 @@ function getStatusBadgeType(id) {
 
     function onSearch() {
         searchValue = $("#searchTextInput").val();
+        window.location.href=`/admin/product/list?searchValue=${searchValue}`
     }
 
     function submitForm() {
@@ -186,12 +206,13 @@ function getStatusBadgeType(id) {
                       Similar to tables, use the modifier classes .thead-light to make
                       <code>&lt;thead&gt;</code>s appear light.
                     </h6> -->
-                    <form class="mt-4">
+                    <form id="form-search-product" class="mt-4">
                         <div class="input-group">
                             <input
                                     class="form-control"
                                     id="searchTextInput"
-                                    placeholder=""
+                                    placeholder="Search"
+                                    value="<%=searchValue%>"
                             />
                             <div class="input-group-append">
                                 <button
@@ -223,15 +244,15 @@ function getStatusBadgeType(id) {
                             <tbody id="table-product-record">
                             <% products.forEach((product, index)=>{ %>
                                 <tr>
-                                    <td class="text-uppercase"><%= product.product_code %></td>
-                                    <td>
+                                    <td class="text-uppercase align-middle"><%= product.product_code %></td>
+                                    <td class="align-middle">
                                         <img class="item-image" src="/images/<%= product.image %>">
                                     </td>
-                                    <td><%= product.name %></td>
-                                    <td><span class="badge <%=getStatusBadgeType(product.status)%>"><%= getStatusById(product.status).status%></span></td>
-                                    <td><%= product.price %> <span class="<%= product.discount>0?'badge badge-dark':''%>"><%=product.discount>0?`-${product.discount}%`:''%></span></td>
-                                    <td><%= product.count %></td>
-                                    <td class="text-right">
+                                    <td class="align-middle"><%=trimProductName(product.name) %></td>
+                                    <td class="align-middle"><span class="badge <%=getStatusBadgeType(product.status)%>"><%= getStatusById(product.status).status%></span></td>
+                                    <td class="align-middle"><%= product.price %> <span class="<%= product.discount>0?'badge badge-dark':''%>"><%=product.discount>0?`-${product.discount}%`:''%></span></td>
+                                    <td class="align-middle"><%= product.count %></td>
+                                    <td class="text-right align-middle">
                                         <a href="/admin/product/detail/<%= product.product_code %>" class="btn btn-warning">View Detail</a>
                                     </td>
                                 </tr>
@@ -241,13 +262,13 @@ function getStatusBadgeType(id) {
                     <% } %>
                 </div>
                 <div class="text-center py-2">
-                    <button class="btn"><i class="fas fa-angle-double-left"></i></button>
-                    <button class="btn"><i class="fas fa-angle-left"></i></button>
+                    <a href="/admin/product/list?searchValue=<%=searchValue%>&page=1" class="btn"><i class="fas fa-angle-double-left"></i></a>
+                    <a href="/admin/product/list?searchValue=<%=searchValue%>&page=<%=clamp(page-1,1,pageCount)%>" class="btn"><i class="fas fa-angle-left"></i></a>
                     <% for(let i = 0;i < pageCount;i++){ %>
-                        <button class="btn <%= (i + 1) == page ? "btn-primary" : "" %> "><%= i + 1 %></button>
+                        <a href="/admin/product/list?searchValue=<%=searchValue%>&page=<%=i+1%>" class="btn <%= (i + 1) == page ? "btn-primary text-white" : "" %> "><%= i + 1 %></a>
                     <% } %>
-                    <button class="btn"><i class="fas fa-angle-right"></i></button>
-                    <button class="btn"><i class="fas fa-angle-double-right"></i></button>
+                    <a href="/admin/product/list?searchValue=<%=searchValue%>&page=<%=clamp(page+1,1,pageCount)%>" class="btn"><i class="fas fa-angle-right"></i></a>
+                    <a href="/admin/product/list?searchValue=<%=searchValue%>&page=<%=pageCount%>" class="btn"><i class="fas fa-angle-double-right"></i></a>
                 </div>
             </div>
         </div>

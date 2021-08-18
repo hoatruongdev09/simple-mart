@@ -40,11 +40,11 @@ Router.get('/product/detail/:code', async (req, res) => {
     }
 })
 Router.get('/product/list', async (req, res) => {
-    const { page = 1, count = 10 } = req.query
+    const { page = 1, count = 2, searchValue = '' } = req.query
     const offset = (page - 1) * count
     const limit = count
     try {
-        const product = await productRepository.getListProduct(limit, offset)
+        const product = await productRepository.getListProduct(limit, offset, searchValue)
         const category = await categoryRepository.getAllCategory()
         const productCount = await productRepository.getProductCount()
         const status = await productRepository.getAllProductStatus()
@@ -56,7 +56,8 @@ Router.get('/product/list', async (req, res) => {
             productCount: productCount.rows[0].count,
             status: status.rows,
             page: page,
-            count: count
+            count: count,
+            searchValue: searchValue
         })
     } catch (e) {
         res.status(500).json({ message: e.message })
