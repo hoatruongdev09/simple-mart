@@ -1,8 +1,17 @@
 const db = require('../db')
 
-async function getAllCategory() {
+
+async function getAllCategory(limit = 100, offset = 0, searchValue = '') {
     try {
-        const data = await db.query('SELECT * FROM categories')
+        const data = await db.query("SELECT * FROM categories WHERE LOWER(name) LIKE LOWER($1) OR $1 LIKE '' LIMIT $2 OFFSET $3", [`%${searchValue}%`, limit, offset])
+        return data
+    } catch (error) {
+        throw error
+    }
+}
+async function getCategoryCount(searchValue = '') {
+    try {
+        const data = await db.query("SELECT COUNT(id) FROM categories WHERE LOWER(name) LIKE LOWER($1) OR $1 LIKE ''", [`%${searchValue}%`])
         return data
     } catch (error) {
         throw error
@@ -38,5 +47,6 @@ module.exports = {
     getAllCategory,
     insertProductCategory,
     getProductCategories,
-    deleteAllProductCategory
+    deleteAllProductCategory,
+    getCategoryCount
 }

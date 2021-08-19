@@ -1,0 +1,104 @@
+<% 
+    let pageCount = Math.floor(categoryCount/count) + (categoryCount % count !=0?1:0) 
+    const clamp = (num, min, max) => Math.min(Math.max(num, min), max); 
+
+%>
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-7 align-self-center">
+            <h4 class="page-title text-truncate text-dark font-weight-medium mb-1">
+                Category List
+            </h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0 p-0">
+                        <li class="breadcrumb-item">
+                            <a href="/admin/dashboard" class="text-muted">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item text-muted active" aria-current="page">
+                            Category List
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mx-0 my-0">
+                        <div class="col-6 px-0">
+                            <h4 class="card-title">List Category</h4>
+                        </div>
+                        <div class="col-6 px-0 text-right">
+                            <button type="button" class="btn btn-success" data-toggle="modal"
+                                data-target="#modal-create-product">Create New Category
+                            </button>
+                        </div>
+                    </div>
+                    <!-- <h6 class="card-subtitle">
+                      Similar to tables, use the modifier classes .thead-light to make
+                      <code>&lt;thead&gt;</code>s appear light.
+                    </h6> -->
+                    <form id="form-search-product" class="mt-4">
+                        <div class="input-group">
+                            <input class="form-control" id="searchTextInput" placeholder="Search" value="">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" onclick="onSearch()" type="button">
+                                    SEARCH
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <%if(categories.length == 0){%>
+                    <%}else{%>
+
+                    <table class="table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-product-record">
+                            <%categories.forEach((category,index)=>{%>
+                            <tr>
+                                <td class="text-uppercase align-middle"><%=category.id%></td>
+                                <td class="align-middle"><%=category.name%></td>
+                                <td class="text-right align-middle">
+                                    <a href="/admin/category/detail/<%=category.id%>" class="btn btn-warning">View
+                                        Detail</a>
+                                </td>
+                            </tr>
+
+                            <%})%>
+                        </tbody>
+                    </table>
+
+                    <%}%>
+                </div>
+                <div class="text-center py-2">
+                    <a href="/admin/category/list?searchValue=<%=searchValue%>&page=1" class="btn"><i
+                        class="fas fa-angle-double-left"></i></a>
+                    <a href="/admin/category/list?searchValue=<%=searchValue%>&page=<%=clamp(page-1,1,pageCount)%>"
+                        class="btn"><i class="fas fa-angle-left"></i></a>
+                    <% for(let i = 0;i < pageCount;i++){ %>
+                    <a href="/admin/category/list?searchValue=<%=searchValue%>&page=<%=i+1%>"
+                        class="btn <%= (i + 1) == page ? "btn-primary text-white" : "" %> "><%= i + 1 %></a>
+                    <% } %>
+                    <a href="/admin/category/list?searchValue=<%=searchValue%>&page=<%=clamp(page+1,1,pageCount)%>"
+                        class="btn"><i class="fas fa-angle-right"></i></a>
+                    <a href="/admin/category/list?searchValue=<%=searchValue%>&page=<%=pageCount%>" class="btn"><i
+                            class="fas fa-angle-double-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

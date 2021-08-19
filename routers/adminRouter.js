@@ -40,7 +40,7 @@ Router.get('/product/detail/:code', async (req, res) => {
     }
 })
 Router.get('/product/list', async (req, res) => {
-    const { page = 1, count = 2, searchValue = '' } = req.query
+    const { page = 1, count = 10, searchValue = '' } = req.query
     const offset = (page - 1) * count
     const limit = count
     try {
@@ -190,6 +190,27 @@ Router.get('/product/ajaxGetCode', async (req, res) => {
     } catch (e) {
         console.log(e)
         res.status(500).json({ message: e.message })
+    }
+})
+
+Router.get('/category/list', async (req, res) => {
+    try {
+        const { page = 1, count = 100, searchValue = '' } = req.query
+        const offset = (page - 1) * count
+        const limit = count
+        const categories = await categoryRepository.getAllCategory(limit, offset, searchValue)
+        const categoryCount = await categoryRepository.getCategoryCount(searchValue)
+        res.render('pages/admin/categoryList', {
+            title: 'Category List',
+            layout: 'layouts/adminLayout.ejs',
+            categories: categories.rows,
+            categoryCount: categoryCount.rows[0].count,
+            page: page,
+            count: count,
+            searchValue: searchValue
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 })
 
